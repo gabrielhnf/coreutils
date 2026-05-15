@@ -1172,3 +1172,24 @@ fn test_non_utf8_tmpdir_directory_creation() {
     // but we can verify the command succeeds
     ucmd.arg("-d").arg("-p").arg(at.plus(dir_name)).succeeds();
 }
+
+#[test]
+#[cfg(unix)]
+fn test_mktemp_hidden_file_single_dot() {
+    let scene = TestScenario::new(util_name!());
+    let dir = tempdir().unwrap();
+    let template = dir.path().join(".XXXXXX");
+
+    let result = scene.ucmd().arg(template.to_str().unwrap()).succeeds();
+
+    let path = result.stdout_str().trim();
+    assert!(
+        std::path::Path::new(path)
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .starts_with('.'),
+        "expected hidden file, got {path}"
+    );
+}
